@@ -1,10 +1,11 @@
-from app.core.config import settings
-from app.routers.health import router as health_router
+from app.api import router
+from app.config import Settings
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 
 def get_application():
+    settings = Settings()
     _app = FastAPI(
         title=settings.APP_NAME,
         description=settings.description,
@@ -14,7 +15,7 @@ def get_application():
         redoc_url=f'{settings.API_PREFIX}/redoc',
     )
 
-    _app.include_router(health_router, prefix=settings.API_PREFIX)
+    _app.include_router(router, prefix=settings.API_PREFIX)
 
     _app.add_middleware(
         CORSMiddleware,
