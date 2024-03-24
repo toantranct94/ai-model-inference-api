@@ -1,10 +1,11 @@
-import os
 import asyncio
 import logging
+import os
 from typing import Callable
+
 from aio_pika import Message, connect
 from aiormq import AMQPConnectionError
-from app.cores import singleton
+from cores import singleton
 
 logging.basicConfig(level=logging.INFO)
 

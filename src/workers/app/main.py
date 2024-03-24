@@ -19,9 +19,9 @@ async def main():
 async def on_message(message: IncomingMessage):
     logging.info(f"Received message: {message}")
 
-    inference_id = message.headers.get("inference_id", "")
+    request_id = message.headers.get("request_id", "")
 
-    if not inference_id:
+    if not request_id:
         return
 
     image = pickle.loads(message.body)
@@ -29,7 +29,7 @@ async def on_message(message: IncomingMessage):
     label = model(x)
     logging.info(f"Inference result: {label}")
 
-    redis_client.set(inference_id, label)
+    redis_client.set(request_id, label)
     await message.ack()
 
 

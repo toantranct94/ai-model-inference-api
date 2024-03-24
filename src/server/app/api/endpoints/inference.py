@@ -2,23 +2,25 @@ import pickle
 import uuid
 
 from aio_pika import Message
-from fastapi import APIRouter, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from PIL import Image
 
 from app.models.enums import Status
 from app.models.schemas import InferenceProcess, InferenceResult
 from app.services import rabbitmq_client, redis_client
+from app.validators import upload_image_validator
 
 router = APIRouter()
 
 
 @router.post(
-    "/",
+    "/requests",
     status_code=status.HTTP_200_OK,
     response_model=InferenceProcess,
 )
 async def inference(
-    image: UploadFile
+    image: UploadFile,
+    _=Depends(upload_image_validator),
 ):
     """
     Perform inference on the given image.
@@ -30,36 +32,36 @@ async def inference(
         InferenceProcess: An object representing the inference process,
             including the status and inference ID.
     """
-    inference_id = str(uuid.uuid4())
+    request_id = str(uuid.uuid4())
     x = Image.open(image.file).convert('RGB')
 
     message = Message(pickle.dumps(x))
 
     message.headers = {
-        "inference_id": inference_id,
+        "request_id": request_id,
     }
 
     await rabbitmq_client.publish_message(message)
 
     return InferenceProcess(
         status=Status.PROCESSING.value,
-        inference_id=inference_id
+        request_id=request_id
     )
 
 
 @router.get(
-    "/result/{inference_id}",
+    "/requests/{request_id}/result",
     status_code=status.HTTP_200_OK,
     response_model=InferenceResult,
 )
 async def inference_result(
-    inference_id: str,
+    request_id: str,
 ):
     """
     Get the result of an inference by its ID.
 
     Parameters:
-    - inference_id (str): The ID of the inference.
+    - request_id (str): The ID of the inference.
 
     Returns:
     - InferenceResult: The result of the inference.
@@ -67,13 +69,13 @@ async def inference_result(
     Raises:
     - HTTPException: If the inference ID is not found.
     """
-    if not redis_client.exists(inference_id):
-        return InferenceResult(status=Status.PROCESSING.value)
-
-    result = redis_client.get(inference_id)
+    result = redis_client.get(request_id)
 
     if result is None:
-        raise HTTPException(status_code=404)
+        if not redis_client.exists(request_id):
+            raise HTTPException(status_code=404)
+        else:
+            return InferenceResult(status=Status.PROCESSING.value)
 
     return InferenceResult(
         status=Status.COMPLETED.value, inference_class=result)

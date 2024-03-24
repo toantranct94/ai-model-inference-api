@@ -4,7 +4,7 @@ from app.models.domains import Status
 
 
 class InferenceProcess(Status):
-    inference_id: str = Field(...)
+    request_id: str = Field(...)
 
 
 class InferenceResult(Status):

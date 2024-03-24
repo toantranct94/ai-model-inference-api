@@ -3,7 +3,6 @@ version: "3.10"
 services:
 
   rabbitmq:
-    container_name: rabbitmq
     image: rabbitmq:management
     command: rabbitmq-server
     tty: true
@@ -12,13 +11,13 @@ services:
       - "15672:15672"
 
   redis:
-    container_name: redis
     image: redis
     ports:
       - "6379:6379"
 
   server:
     container_name: server
+    image: server
     build: ./src/server
     env_file:
       - ./src/server/.env
@@ -26,9 +25,13 @@ services:
       - ./src/server/:/usr/src/server/app/
     ports:
       - "8000:8000"
+    depends_on:
+      - rabbitmq
+      - redis
 
   workers:
     container_name: workers
+    image: workers
     build: ./src/workers
     env_file:
       - ./src/workers/.env
