@@ -1,11 +1,39 @@
 version: "3.10"
 
 services:
-  app:
-    build: ./src
-    env_file:
-      - ./src/.env
-    volumes:
-      - ./src/:/usr/src/app/
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:management
+    command: rabbitmq-server
+    tty: true
     ports:
-      - "80:8000"
+      - "5672:5672"
+      - "15672:15672"
+
+  redis:
+    container_name: redis
+    image: redis
+    ports:
+      - "6379:6379"
+
+  server:
+    container_name: server
+    build: ./src/server
+    env_file:
+      - ./src/server/.env
+    volumes:
+      - ./src/server/:/usr/src/server/app/
+    ports:
+      - "8000:8000"
+
+  workers:
+    container_name: workers
+    build: ./src/workers
+    env_file:
+      - ./src/workers/.env
+    volumes:
+      - ./src/workers/:/usr/src/workers/app/
+    depends_on:
+      - rabbitmq
+      - redis

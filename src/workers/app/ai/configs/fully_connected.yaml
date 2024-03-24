@@ -1,0 +1,64 @@
+fc:
+  - name: fc1
+    type: Linear
+    params:
+      in_features: 2048
+      out_features: 1000
+      bias: true
+  - name: BN1
+    type: BatchNorm2d
+    params:
+      num_features: 1000
+      eps: 1e-05
+      momentum: 0.1
+      affine: true
+      track_running_stats: true
+  - name: dropout1
+    type: Dropout
+    params:
+      p: 0.7
+  - name: fc2
+    type: Linear
+    params:
+      in_features: 1000
+      out_features: 512
+  - name: BN2
+    type: BatchNorm2d
+    params:
+      num_features: 512
+      eps: 1e-05
+      momentum: 0.1
+      affine: true
+      track_running_stats: true
+  - name: swish1
+    type: Swish
+    params: {}
+  - name: dropout2
+    type: Dropout
+    params:
+      p: 0.5
+  - name: fc3
+    type: Linear
+    params:
+      in_features: 512
+      out_features: 128
+  - name: BN3
+    type: BatchNorm2d
+    params:
+      num_features: 128
+      eps: 1e-05
+      momentum: 0.1
+      affine: true
+      track_running_stats: true
+  - name: swish2
+    type: Swish
+    params: {}
+  - name: fc4
+    type: Linear
+    params:
+      in_features: 128
+      out_features: 3
+  - name: output
+    type: Softmax
+    params:
+      dim: 1
