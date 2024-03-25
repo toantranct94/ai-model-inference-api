@@ -1,9 +1,8 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
 from app.api import router
 from app.configs import Settings
 from app.services import rabbitmq_client
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 
 def get_application():

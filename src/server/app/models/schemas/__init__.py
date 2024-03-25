@@ -1,2 +1,5 @@
-from .health import Health  # noqa
-from .inference import InferenceProcess, InferenceResult  # noqa
+from .health import Health
+from .inference import InferenceProcess, InferenceResult
+
+
+__all__ = ["Health", "InferenceProcess", "InferenceResult"]

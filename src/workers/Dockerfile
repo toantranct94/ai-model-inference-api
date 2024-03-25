@@ -1,9 +1,9 @@
-FROM python:3.8.19-slim-bullseye
+FROM --platform=linux/amd64 python:3.8.19-slim-bullseye
 
 WORKDIR /code
 
-COPY ./requirements.txt /code/requirements.txt
-COPY ./app /code/app
+COPY . /code/
+
 # Install Redis and RabbitMQ dependencies
 RUN apt-get update && apt-get install -y rabbitmq-server netcat
 

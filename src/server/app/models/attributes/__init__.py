@@ -1,1 +1,3 @@
-from .health import Health  # noqa
+from .health import Health
+
+__all__ = ["Health"]

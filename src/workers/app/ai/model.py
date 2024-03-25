@@ -17,11 +17,13 @@ class InferenceModel(nn.Module):
         pretrained: bool = True,
         drop_rate: float = 0.2,
         fc_config_path: str = './app/ai/configs/fully_connected.yaml',
-        checkpoint_path: str = './app/ai/checkpoints/EfficientNet_B0_NS_320.pth'
+        checkpoint_path: str = (
+            './app/ai/checkpoints/EfficientNet_B0_NS_320.pth'
+        )
     ):
         super().__init__()
 
-        self.model = self.build_model(
+        self.build_model(
             model_name, pretrained, drop_rate, fc_config_path, checkpoint_path)
 
     def build_model(
@@ -46,14 +48,12 @@ class InferenceModel(nn.Module):
         Returns:
             torch.nn.Module: The built model.
         """
-        model = timm.create_model(
+        self.model = timm.create_model(
             model_name, pretrained=pretrained, drop_rate=drop_rate)
 
-        model.fc = self.build_fully_connected_layers(fc_config_path)
+        self.model.fc = self.build_fully_connected_layers(fc_config_path)
 
-        self.load_checkpoint(model, checkpoint_path)
-
-        return model
+        self.load_checkpoint(checkpoint_path)
 
     def build_fully_connected_layers(self, config_path: str):
         """
@@ -85,9 +85,19 @@ class InferenceModel(nn.Module):
         fc = nn.Sequential(layers)
         return fc
 
-    def load_checkpoint(self, model, checkpoint_path: str):
-        checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
-        model.load_state_dict(checkpoint['model_state_dict'])
+    def load_checkpoint(self, checkpoint_path: str):
+        """
+        Loads a checkpoint file and updates the model's state dictionary.
+
+        Args:
+            checkpoint_path (str): The path to the checkpoint file.
+
+        Returns:
+            None
+        """
+        checkpoint = torch.load(
+            checkpoint_path, map_location=torch.device('cpu'))
+        self.model.load_state_dict(checkpoint['model_state_dict'])
 
     def forward(self, x: Variable):
         """
@@ -104,12 +114,12 @@ class InferenceModel(nn.Module):
         return label
 
     @staticmethod
-    def preprocess_image(image: str):
+    def preprocess_image(image: Image.Image):
         """
         Preprocesses an image for model inference.
 
         Args:
-            image_path (str): The path to the image file.
+            image (str): The data of the image.
 
         Returns:
             torch.Tensor: The preprocessed image tensor.

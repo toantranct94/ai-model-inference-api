@@ -21,8 +21,6 @@ services:
     build: ./src/server
     env_file:
       - ./src/server/.env
-    volumes:
-      - ./src/server/:/usr/src/server/app/
     ports:
       - "8000:8000"
     depends_on:
@@ -35,8 +33,6 @@ services:
     build: ./src/workers
     env_file:
       - ./src/workers/.env
-    volumes:
-      - ./src/workers/:/usr/src/workers/app/
     depends_on:
       - rabbitmq
       - redis

@@ -15,7 +15,7 @@ router = APIRouter()
 
 @router.post(
     "/requests",
-    status_code=status.HTTP_200_OK,
+    status_code=status.HTTP_202_ACCEPTED,
     response_model=InferenceProcess,
 )
 async def inference(
@@ -69,13 +69,14 @@ async def inference_result(
     Raises:
     - HTTPException: If the inference ID is not found.
     """
+
+    if not redis_client.exists(request_id):
+        raise HTTPException(status_code=404)
+
     result = redis_client.get(request_id)
 
     if result is None:
-        if not redis_client.exists(request_id):
-            raise HTTPException(status_code=404)
-        else:
-            return InferenceResult(status=Status.PROCESSING.value)
+        return InferenceResult(status=Status.PROCESSING.value)
 
     return InferenceResult(
         status=Status.COMPLETED.value, inference_class=result)

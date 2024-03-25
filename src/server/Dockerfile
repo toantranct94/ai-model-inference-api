@@ -1,12 +1,9 @@
-FROM python:3.8.19-slim-bullseye
+FROM --platform=linux/amd64 python:3.8.19-slim-bullseye
 
-WORKDIR /usr/src/app
+WORKDIR /code
 
-COPY ./requirements.txt /usr/src/app/requirements.txt
-COPY ./.env /usr/src/app/.env
+COPY . /code/
 
-RUN pip install --no-cache-dir --upgrade -r /usr/src/app/requirements.txt
-
-COPY . /usr/src/app/
+RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

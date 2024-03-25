@@ -123,8 +123,6 @@ The folder structure of the project is as follows:
     │   │   ├── validators
     │   │   │   ├── __init__.py
     │   │   │   └── upload.py
-    │   │   └── workers
-    │   │       └── __init__.py
     │   ├── requirements.txt
     │   └── tests
     │       ├── __init__.py
