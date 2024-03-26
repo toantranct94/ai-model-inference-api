@@ -1,5 +1,5 @@
-from .model import InferenceModel
+from .models import ModelFactory
 
 __all__ = [
-    'InferenceModel',
+    'ModelFactory',
 ]

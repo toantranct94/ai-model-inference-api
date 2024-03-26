@@ -3,7 +3,7 @@ import logging
 import os
 from typing import Callable
 
-from aio_pika import Message, connect
+from aio_pika import Message, connect, ExchangeType
 from aiormq import AMQPConnectionError
 from cores import singleton
 
@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 @singleton
 class RabbitMQClient():
     def __init__(self):
-        self.amqp_url = os.getenv("AMQP_URL", "amqp://guest:guest@rabbitmq/")
+        self.amqp_url = os.getenv("AMQP_URL", "")
         self.connection = None
         self.channel = None
         self.retry_attempts = 10
@@ -23,6 +23,17 @@ class RabbitMQClient():
         for attempt in range(self.retry_attempts):
             try:
                 self.connection = await connect(self.amqp_url)
+                self.channel = await self.connection.channel()
+                self.dlx = await self.channel.declare_exchange(
+                    'dlx', ExchangeType.DIRECT)
+                self.dlq = await self.channel.declare_queue(
+                    'dlq', arguments={
+                        'x-message-ttl': 5000,
+                        'x-dead-letter-exchange': 'amq.direct',
+                        'x-dead-letter-routing-key': 'pgdb'
+                    })
+                await self.dlq.bind(self.dlx, 'dlq')
+                logging.info("Connected to RabbitMQ")
                 break
             except AMQPConnectionError:
                 logging.error(
@@ -30,8 +41,6 @@ class RabbitMQClient():
                         f"Retrying in {self.retry_delay} seconds..."))
                 self.retry_delay *= 2
                 await asyncio.sleep(self.retry_delay)
-        self.channel = await self.connection.channel()
-        logging.info("Connected to RabbitMQ")
 
     async def close(self):
         await self.connection.close()
