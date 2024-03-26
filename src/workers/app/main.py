@@ -8,13 +8,14 @@ from services import rabbitmq_client, redis_client
 
 logging.basicConfig(level=logging.INFO)
 model = ModelFactory.create_model()
+MAX_RETRY = 5
 
 
 async def main():
     await rabbitmq_client.connect()
     queue = await rabbitmq_client.channel.declare_queue(
         "pgdb", arguments={
-            'x-message-ttl' : 1000,
+            'x-message-ttl' : 5000,
             'x-dead-letter-exchange': 'dlx',
             'x-dead-letter-routing-key': 'dlq'
         })
@@ -39,13 +40,20 @@ async def on_message(message: IncomingMessage):
         await message.ack()
     except Exception as e:
         logging.error(f"Error in model forward: {e}")
-        # Send the message to the DLX
+        retry_count = message.headers.get('x-retry-count', 0)
+        retry_count += 1
+
+        if retry_count > MAX_RETRY:
+            logging.info(
+                f"Message {request_id} has reached the maximum retry count.")
+            return
+
+        message.headers['x-retry-count'] = retry_count
         await rabbitmq_client.publish_message(
             Message(
                 body=message.body,
                 headers=message.headers,
                 delivery_mode=message.delivery_mode,
-                expiration=10000
             ),
             routing_key='dlq'
         )

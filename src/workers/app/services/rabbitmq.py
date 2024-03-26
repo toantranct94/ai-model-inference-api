@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 @singleton
 class RabbitMQClient():
     def __init__(self):
-        self.amqp_url = os.getenv("AMQP_URL", "")
+        self.amqp_url = os.getenv("AMQP_URL", "amqp://guest:guest@localhost/")
         self.connection = None
         self.channel = None
         self.retry_attempts = 10
